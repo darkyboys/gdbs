@@ -9,7 +9,11 @@
 
 // Header
 // STL
-#include "core.hh"
+#ifndef GDBS_EXECUTER_HH
+#define GDBS_EXECUTER_HH
+#include <chrono>
+#include <cinttypes>
+#include <thread>
 #include <vector>
 #include <filesystem>
 #include <string>
@@ -19,5 +23,6 @@
 #include <components/fs-utils.hh>
 
 namespace gdbs {
-    void executer(std::vector <gdbs::core_file_t> tokens, int thread_limit = 1);
+    void executer(std::vector <gdbs::core_file_t> tokens, int thread_limit = std::thread::hardware_concurrency(), bool show_command = false);
 }
+#endif

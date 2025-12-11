@@ -8,10 +8,6 @@
 // This file contains the fs utils of the project
 
 // Header
-// STL
-#include <filesystem>
-#include <string>
-
 // Local
 #include <components/fs-utils.hh>
 

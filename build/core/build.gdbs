@@ -1,0 +1,15 @@
+# This is the official build file for the gdbs build system's core
+# This must be run from the root of the repo
+global:
+    compiler_parguments = "-c"
+    bin = "objects"
+    include = [
+        "include",
+        "src"
+    ]
+
+src/implementations/core.cc: out = "core.o"
+src/implementations/executer.cc: out = "exec.o"
+src/implementations/fs-utils.cc: out = "fsut.o"
+include/ConsolePrint/ConsolePrint.cc: out = "conp.o"
+

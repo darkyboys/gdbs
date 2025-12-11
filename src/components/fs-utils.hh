@@ -10,8 +10,8 @@
 // Header
 // STL
 
-#ifndef FS_UTILS_HH
-#define FS_UTILS_HH
+#ifndef GDBS_FS_UTILS_HH
+#define GDBS_FS_UTILS_HH
 
 #include <filesystem>
 #include <chrono>

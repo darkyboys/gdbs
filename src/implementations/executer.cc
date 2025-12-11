@@ -8,14 +8,6 @@
 // This file contains the fs utils of the project
 
 // Header
-// STL
-#include <chrono>
-#include <cinttypes>
-#include <thread>
-#include <vector>
-#include <filesystem>
-#include <string>
-
 // Local Libraries
 #include <components/core.hh>
 #include <components/fs-utils.hh>
@@ -24,9 +16,9 @@
 #include <ConsolePrint/ConsolePrint.hh>
 
 namespace gdbs {
-    void executer(std::vector <gdbs::core_file_t> tokens, int thread_limit){
+    void executer(std::vector <gdbs::core_file_t> tokens, int thread_limit, bool show_command){
         int active_threads = 0;
-
+        bool errors = false; // if errors then terminate the program
         // This part is taken from the core.cc so this must be updated with it as well
         const std::string CACHE_DIRECTORY = ".gdbs-cache/"; // The directory where the cache files will be created
         const std::string DS_FILE = CACHE_DIRECTORY + "ds.h699"; // The data set file path
@@ -43,15 +35,19 @@ namespace gdbs {
             if (active_threads < thread_limit){
                 // std::cout << "i:"<<i<<"\n";
                 active_threads += 1; // This will actually run before the thread
-                std::thread([&i, &h699_ds_file, &DS_FILE, &active_threads, &tokens](){
+                std::thread([&errors, &show_command, &i, &h699_ds_file, &DS_FILE, &active_threads, &tokens](){
                     ConsolePrint::print ("Building " + tokens[i].output + ", Compiling " + tokens[i].filename + ", Progress [" + std::to_string((float(i) / float((tokens.size()-1.0f == 0) ? 1 : tokens.size()-1.0f))*100) + "%]", ConsolePrint::Type::Log);
-                    std::system (tokens[i].command.c_str());
+                    if (show_command) ConsolePrint::print ("Commands: " + tokens[i].command, ConsolePrint::Type::Message);
+                    std::system (std::string ("rm -rf " + tokens[i].output).c_str()); // Delete the file if it existed previously just for always making a neat dataset
+                    if (std::system (tokens[i].command.c_str()) != 0) errors = true;
                     std::this_thread::sleep_for(std::chrono::milliseconds(10));
                     active_threads -= 1;
                 }).detach();
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
         }
+
+        if (errors) std::exit (3);
 
         // Now we will set the time stamps of all the binaries
         for (gdbs::core_file_t token : tokens){

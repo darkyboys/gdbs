@@ -1,3 +1,9 @@
-example/a.cc:
-example/b.cc:
-example/c.cc:
+# This is the official build file for the gdbs build system
+cli:
+    -mkcore = "gdbs build/core"
+    -mkwrapper = "gdbs build/wrapper"
+    -install = "mv bin/* /usr/local/bin"
+    -make = [
+        "gdbs . -mkcore",
+        "gdbs . -mkwrapper"
+    ]

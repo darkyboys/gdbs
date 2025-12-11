@@ -9,13 +9,17 @@
 
 // Header
 // STL
-#ifndef CORE_HH
-#define CORE_HH
+#ifndef GDBS_CORE_HH
+#define GDBS_CORE_HH 1
 
 #include <string>
+#include <thread>
+#include <vector>
+#include <filesystem>
+#include <fstream>
 
 namespace gdbs{
-    int core(std::string file, bool allowed_incremental_build = true); // Takes the file's path as a full file.
+    int core(std::string file, std::vector <std::string> cli_args, int threads, bool allowed_incremental_build = true, bool show_command = false); // Takes the file's path as a full file.
     struct core_file_t { // A Type For the communication in between the build system's core library and the execution managing library
         std::string command;
         std::string output;

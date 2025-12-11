@@ -1,0 +1,16 @@
+# This is the official build file for the gdbs build system's cli wrapper
+# This must be run from the root of the repo
+global:
+    include = [
+        "include",
+        "src"
+    ]
+
+src/gdbs.cc: 
+    out = "gdbs"
+    combine = [
+        "objects/core.o",
+        "objects/exec.o",
+        "objects/fsut.o",
+        "objects/conp.o"
+    ]

@@ -1,0 +1,15 @@
+
+
+
+cli:
+    --list-dir = "ls"
+
+ontriggerchange:
+    command = "echo hi"
+
+onchange:
+    commands = ["echo \"Process finished!\"", "ls"]
+
+example/a.cc:
+example/b.cc: compare = ["example/a.cc", "example/c.cc"]
+example/c.cc: compare = "example/a.cc"
