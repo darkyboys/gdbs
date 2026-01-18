@@ -17,8 +17,12 @@
 #include <vector>
 #include <filesystem>
 #include <fstream>
+#include <h699/h699.hh>
+#include <ConsolePrint/ConsolePrint.hh>
 
 namespace gdbs{
+    int is_timestamp_same(std::string file_name, HELL6_99MO& H699);
+    void set_timestamp(std::string file_name, HELL6_99MO& H699);
     int core(std::string file, std::vector <std::string> cli_args, int threads, bool allowed_incremental_build = true, bool show_command = false); // Takes the file's path as a full file.
     struct core_file_t { // A Type For the communication in between the build system's core library and the execution managing library
         std::string command;

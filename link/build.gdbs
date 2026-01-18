@@ -1,0 +1,9 @@
+# This file must only run automatically by the gdbs build system from the root of the project
+objects/gdbs.o:
+    combine = [
+        "objects/conp.o",
+        "objects/core.o",
+        "objects/exec.o",
+        "objects/fsut.o"
+    ]
+    out = "gdbs"

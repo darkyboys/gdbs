@@ -1,9 +1,28 @@
-# This is the official build file for the gdbs build system
+# This is the official build file for the gdbs build system's core
+# This must be run from the root of the repo
+
 cli:
-    -mkcore = "gdbs build/core"
-    -mkwrapper = "gdbs build/wrapper"
-    -install = "mv bin/* /usr/local/bin"
-    -make = [
-        "gdbs . -mkcore",
-        "gdbs . -mkwrapper"
+    -clean = "rm -rf bin objects .gdbs-cache "
+    -install = "sudo mv bin/gdbs /usr/local/bin"
+
+onchange:
+    command = "gdbs link"
+    need = "bin/gdbs"
+
+global:
+    compiler_parguments = "-c"
+    bin = "objects"
+    include = [
+        "include",
+        "src"
     ]
+
+# Build the libraries first
+src/implementations/core.cc: out = "core.o"
+src/implementations/executer.cc: out = "exec.o"
+src/implementations/fs-utils.cc: out = "fsut.o"
+include/ConsolePrint/ConsolePrint.cc: out = "conp.o"
+
+# Make the main source files objects
+src/gdbs.cc: out = "gdbs.o"
+    
