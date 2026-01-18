@@ -555,7 +555,7 @@ namespace gdbs{
                 // include
                 HELL6_99MO_TYPE include = buildFileH699.get(currentFileName + ".include");
                 if (include.type == "string"){
-                    if (is_global) cfg_include = "-l" + include.string_value;
+                    if (is_global) cfg_include = "-I" + include.string_value;
                     else fcfg_include = "-I" + include.string_value;
                 }
                 else if (include.type == "array"){
