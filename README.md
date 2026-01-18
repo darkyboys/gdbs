@@ -228,6 +228,16 @@ onchange:
 ontriggerchange:
     command = "echo \"Something is about to be compiled.\""
 ```
+ 
+##### need property with onchange and ontriggerchange
+`need` property with `onchange` and `ontriggerchange` scopes is used to execute the commands even if a file or a directory don't exists. For example you want to run something only if something is changed but also if a file or directory don't exists. This is ideal for installation scripts and even building.
+
+Example:
+```bash
+ontriggerchange:
+    command = "echo \"This will always run until the abc file exists and nothing changes\""
+    need = "abc"
+```
 
 ##### cli
 This is one of the most important additions to the `GDBS`, Because this directly allows the programers to take the input fromt the `CLI` and execute some commands for those inputs. This one can take any property as the argument and a dynamic `string/array` value as the commands to execute.

@@ -8,6 +8,8 @@
 
 // headers
 // Std Cxx 17 STL
+#ifndef HELL6_99MOCC
+#define HELL6_99MOCC
 #include <iostream>
 #include  <fstream>
 #include   <string>
@@ -927,3 +929,5 @@ class HELL6_99MO{
         }
 
 };
+
+#endif
