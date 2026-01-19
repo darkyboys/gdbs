@@ -354,9 +354,11 @@ namespace gdbs{
                 }
 
                 // Checking the output binary's timestamps
-                if (not (gdbs::is_timestamp_same(fcfg_out, openFilePathH699))){
-                    can_ignore_this_file = false;
-                    updatedFileVector.push_back(fcfg_out);
+                if (can_ignore_this_file){
+                    if (not (gdbs::is_timestamp_same(fcfg_out, openFilePathH699))){
+                        can_ignore_this_file = false;
+                        updatedFileVector.push_back(fcfg_out);
+                    }
                 }
             }
 
