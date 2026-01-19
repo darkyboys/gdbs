@@ -35,7 +35,7 @@ namespace gdbs {
                 // std::cout << "i:"<<i<<"\n";
                 active_threads += 1; // This will actually run before the thread
                 std::thread([&error_files, &show_command, &i, &active_threads, &tokens](){
-                    ConsolePrint::print ("Building " + tokens[i].output + ", Compiling " + tokens[i].filename + ", Progress [" + std::to_string((float(i) / float((tokens.size()-1.0f == 0) ? 1 : tokens.size()-1.0f))*100) + "%]", ConsolePrint::Type::Log);
+                    ConsolePrint::print ("Building " + tokens[i].output + ", Compiling " + tokens[i].filename + ", Progress [" + std::to_string((float(i) / float((tokens.size()-1.0f == 0) ? 1 : tokens.size()-1.0f))*100) + "%]\n", ConsolePrint::Type::Log);
                     if (show_command) ConsolePrint::print ("Commands: " + tokens[i].command, ConsolePrint::Type::Message);
                     if (std::system (tokens[i].command.c_str()) != 0) error_files.push_back (tokens[i].filename);
                     std::this_thread::sleep_for(std::chrono::milliseconds(10));
