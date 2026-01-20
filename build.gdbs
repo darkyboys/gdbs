@@ -18,7 +18,10 @@ global:
     ]
 
 # Build the libraries first
-src/implementations/core.cc: out = "core.o"
+src/implementations/core.cc: 
+    out = "core.o"
+    expanded_compare = "src/components"
+
 src/implementations/executer.cc: out = "exec.o"
 src/implementations/fs-utils.cc: out = "fsut.o"
 include/ConsolePrint/ConsolePrint.cc: out = "conp.o"
