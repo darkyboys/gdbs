@@ -254,7 +254,103 @@ cli:
 
 *Here if the `GDBS CLI` gets any of those arguments `-install` or `-make` it will trigger the commands respectively. In fact multiple arguments can be given at once but remember that arguments from the `CLI` will put the `GDBS` into the `CLI Mode` means it will only execute those arguments (If given) and will not build anything. If only standard arguments were passed then it will build the project normally.*
 
+---
 
+##### Runtime Manipulators
+Runtime Manipulators are those features of gdbs which directly manipulates the runtime of the build system while building something. This manipulation can include modification of the build file inside the memory without touching the physical disk so your main file remains untouched & intact. All the changed happens into the memory.
+
+##### expanded_compare & expanded_combine
+Let's suppose that you have so many files in a directory that you want to compare or combine to build the binary of your project. If the files were like 10 or 20 then you could literally write them in combine inside `global` and let the project inherit them. This works fine for small to mid sized projects how ever for bigger projects where a directory can contain 100s of files to be compared or combined manually writing them becomes very impractical. So here comes the `expanded_compare` and `expanded_combine`. They can take a string value or an array value of strings which will contain the path to the directory where your files are that you want to compare / combine.
+
+Example:-
+Directory structure
+```bash
+dir/
+ - a.cpp
+ - b.cpp
+ - c.cpp
+```
+
+Now you want to combine them automatically without manually writing their names in `combine` so you can just say.
+
+```bash
+myfile.cc:
+    expanded_combine = "dir"
+```
+
+This will automatically create a combine which will hold the names of all the files in the `dir` means you didn't had to manually write them.
+
+Compare is same just with different naming.
+
+```bash
+myfile.cc:
+    expanded_compare = "dir"
+```
+
+Similarly with multiple directories:
+```bash
+dir/
+ - dir2/
+ - - anotherfile.cpp
+ - - anotherfile2.cpp
+ - a.cpp
+ - b.cpp
+ - c.cpp
+```
+
+You can just say:
+```bash
+myfile.cc:
+    expanded_compare = [
+        "dir",
+        "dir/dir2"
+    ]
+```
+It will automatically cr the work of creating compare for you for each file inside the directories. Combine is same just different naming.
+
+ > Note: They do creates new values but your physical file remains untouched! Everything happens in the file stored in the memory.
+
+##### Expanding source files
+Expanding source files means listing the source files in a directory without actually writing their names in the build config.
+
+Let's suppose that you are working on a big project with have thousands of files in the `src` directory and you want to compile them, Well that will be devastating if you try to write their names manually. Sure `global` can help in config inheritance but writing each file's name is very impractical for bigger projects. So here comes the `GDBS's` **Expanding source files** feature. Which let's you automatically write the file names located in a directory with the `out` property in the config without touching your physical file. You just write the path and end it with `/*` and the build system will automatically expand it.
+
+Example:-
+Suppose you have a directory `src` containing a,b,c, files to compile so instead of writing their names manually you can just say `src/*` and make it a *scope* by ending it with `:` symbol then the build system will replace the `src/*` with `src/a` , `src/b`, `src/c`. Cool isn't it ? You have to write very less now. 
+
+So you can literally write
+```bash
+src/*:
+```
+in your config and the build system will expand it automatically and the build system will also correctly parse the output names. If the files have a file extension then that file extension will be replaced by `.bin` and if the files don't have a file extension then by default the `.bin` extension will be added in the last of the out property.
+
+So if the files were `a.cc` , `b.cc`, `c.cc` then they will become `a.bin` , `b.bin`, `c.bin`
+
+But you can change this with the `ext` property of file expanding. `ext` takes just a string value and it directly tells the build system to what file extension to use.
+
+Means if you write:
+```bash
+global: compiler_parguments = "-c"
+src/*: ext = "o"
+```
+
+And your project structure was:
+```bash
+src/
+ - a.cc
+ - b.cc
+ - c.cc
+```
+
+So that will become this in the memory
+```bash
+global: compiler_parguments = "-c"
+src/a.cc: out = "a.o"
+src/b.cc: out = "b.o"
+src/c.cc: out = "c.o"
+```
+
+Again repeating! All this happens inside the file stored in the memory not the actual build file you wrote yourself.
 --- 
 
 ### Real Life Example Of A build.gdbs
@@ -268,21 +364,17 @@ Another really good example can be the `build.gdbs` of the project `GDBS` itself
 
 `build.gdbs`
 ```bash
-# This is the official build file for the gdbs build system
-cli:
-    -mkcore = "gdbs build/core"
-    -mkwrapper = "gdbs build/wrapper"
-    -install = "mv bin/* /usr/local/bin"
-    -make = [
-        "gdbs . -mkcore",
-        "gdbs . -mkwrapper"
-    ]
-```
-
-`build/core/build.gdbs`
-```bash
 # This is the official build file for the gdbs build system's core
 # This must be run from the root of the repo
+
+cli:
+    -clean = "rm -rf bin objects .gdbs-cache "
+    -install = "sudo mv bin/gdbs /usr/local/bin"
+
+onchange:
+    command = "gdbs link"
+    need = "bin/gdbs"
+
 global:
     compiler_parguments = "-c"
     bin = "objects"
@@ -291,30 +383,31 @@ global:
         "src"
     ]
 
-src/implementations/core.cc: out = "core.o"
+# Build the libraries first
+src/implementations/core.cc: 
+    out = "core.o"
+    expanded_compare = "src/components"
+
 src/implementations/executer.cc: out = "exec.o"
 src/implementations/fs-utils.cc: out = "fsut.o"
 include/ConsolePrint/ConsolePrint.cc: out = "conp.o"
+
+# Make the main source files objects
+src/gdbs.cc: out = "gdbs.o"
+    
 ```
 
-`build/wrapper/build.gdbs`
+`link/build.gdbs`
 ```bash
-# This is the official build file for the gdbs build system's cli wrapper
-# This must be run from the root of the repo
-global:
-    include = [
-        "include",
-        "src"
-    ]
-
-src/gdbs.cc: 
-    out = "gdbs"
+# This file must only run automatically by the gdbs build system from the root of the project
+objects/gdbs.o:
     combine = [
+        "objects/conp.o",
         "objects/core.o",
         "objects/exec.o",
-        "objects/fsut.o",
-        "objects/conp.o"
+        "objects/fsut.o"
     ]
+    out = "gdbs"
 ```
 
 *Try to figure out why are those written like they are and you will also find the reason why you might also prefer `GDBS` for your C/C++ projects. 😃*

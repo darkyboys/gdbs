@@ -45,6 +45,23 @@ namespace gdbs{
     }
 
 
+    std::vector<std::string> listFilesInDirectory(const std::string& directoryPath) {
+        std::vector<std::string> files;
+
+        std::filesystem::path dirPath(directoryPath);
+
+        if (std::filesystem::exists(dirPath) && std::filesystem::is_directory(dirPath)) {
+            for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(dirPath)) {
+                if (std::filesystem::is_regular_file(entry.status())) {
+                    files.push_back(entry.path().filename().string());
+                }
+            }
+        }
+
+        return files;
+    }
+
+
 
     int core(std::string file, std::vector <std::string> cli_args, int threads, bool allowed_incremental_build, bool show_command){ // Takes the file's path as a full file.
         int status = 0; // This will be the return value to tell the programmer if something goes right or wrong
@@ -127,7 +144,51 @@ namespace gdbs{
 
 
 
-        for (std::string currentFileName : buildFileH699.scopes){
+        for (std::size_t i = 0;i < buildFileH699.scopes.size();i++){
+            std::string currentFileName = buildFileH699.scopes[i];
+            if (currentFileName == "") continue;
+            if (currentFileName[currentFileName.length()-1] == '*' and currentFileName[currentFileName.length()-2] == '/'){
+                // std::cout << "Detected!\n"; // for debugging only
+                std::string path = currentFileName;
+                path = path.substr(0, path.length()-1);
+                if (not (std::filesystem::is_directory(path))){
+                    ConsolePrint::print("Error:- Couldn't expand `" + currentFileName + "` because `" + path + "` was not a directory. Aborting the build!\n");
+                    std::exit (3);
+                }
+                buildFileH699.scopes[i] = ""; // make it empty so that the expanding instruction becomes nothing and being ignored by the core later
+                for (std::string fileAtPath : gdbs::listFilesInDirectory(path)){
+                    buildFileH699.scopes.insert(buildFileH699.scopes.begin() + i, path + fileAtPath);
+                    // std::cout << buildFileH699.scopes[i] <<"\n"; // for debugging
+                    buildFileH699.new_key(path + fileAtPath + ".out", "string");
+                    // std::cout << path + fileAtPath + ".out" << "\n\n"; // for debugging
+                    std::string file_name_token;
+                    std::string buffer;
+                    bool dot_found = false;
+                    for (std::size_t x = 0;x < fileAtPath.length();x++){
+                        if (fileAtPath[x] == '.'){
+                            dot_found = true;
+                            file_name_token += buffer;
+                            buffer.clear();
+                        } 
+                        buffer += fileAtPath[x];
+                    }
+                    if (dot_found == false){
+                        file_name_token = buffer;
+                    }
+                    HELL6_99MO_TYPE ext = buildFileH699.get(currentFileName + ".ext");
+                    std::string extension = "bin";
+                    if (ext.type == "string"){
+                        extension = ext.string_value;
+                    }
+                    else if (ext.type != H699_UNIDEF){
+                        ConsolePrint::print("Warning:- ext for `" + currentFileName + "` can only store strings! Ignoring different types.");
+                    }
+                    file_name_token = file_name_token + "." + extension;
+                    buildFileH699.set(path + fileAtPath + ".out", file_name_token);
+                }
+                i--;
+                continue;
+            }
             if (currentFileName == "cli"){
                 continue;
             }
@@ -320,6 +381,106 @@ namespace gdbs{
 
 
             // Checking the essential configurations no matter what
+            // expanded_compare
+            HELL6_99MO_TYPE expanded_compare = buildFileH699.get(currentFileName + ".expanded_compare");
+            if (expanded_compare.type == "string"){
+                if (not (std::filesystem::is_directory(expanded_compare.string_value))){
+                    ConsolePrint::print("Error:- the path passed to the expanded_compare was not a directory, For file `" + currentFileName + "` in `" + file + "`. The Path `" + expanded_compare.string_value + "`. Critical error, Aborting the build!\n", ConsolePrint::Type::Error);
+                    std::exit (3);
+                }
+                if (buildFileH699.get(currentFileName + ".compare").type != H699_UNIDEF){
+                    ConsolePrint::print("Warning:- Ignoring expanded_compare because compare key already exists, For file `" + currentFileName + "` in `" + file + "`. The Path `" + expanded_compare.string_value + "`.", ConsolePrint::Type::Warning);
+                }
+                else {
+                    std::vector <std::string> total_files = {};
+                    for (std::string files : gdbs::listFilesInDirectory(expanded_compare.string_value)){
+                        total_files.push_back (expanded_compare.string_value + "/" + files);
+                    }
+                    buildFileH699.new_key(currentFileName + ".compare", "array");
+                    buildFileH699.set_array(currentFileName + ".compare", total_files);
+                }
+            }
+            else if (expanded_compare.type == "array"){
+                if (buildFileH699.get(currentFileName + ".compare").type != H699_UNIDEF){
+                    ConsolePrint::print("Warning:- Ignoring expanded_compare because compare key already exists, For file `" + currentFileName + "` in `" + file + "`.", ConsolePrint::Type::Warning);
+                }
+                else {
+                    std::vector <std::string> total_files = {};
+                    for (std::string path : expanded_compare.array_value){
+                        if (not (std::filesystem::is_directory(path))){
+                            ConsolePrint::print("Error:- the path passed to the expanded_compare was not a directory, For file `" + currentFileName + "` in `" + file + "`. The Path `" + path + "`. Critical error, Aborting the build!\n", ConsolePrint::Type::Error);
+                            std::exit (3);
+                        } 
+                        for (std::string files : gdbs::listFilesInDirectory(path)){
+                            total_files.push_back (path + "/" + files);
+                        }
+                    }
+                    buildFileH699.new_key(currentFileName + ".compare", "array");
+                    buildFileH699.set_array(currentFileName + ".compare", total_files);
+                }
+            }
+            else if (expanded_compare.type != H699_UNIDEF){
+                ConsolePrint::print("Warning:- the expanded_compare key can only contain a string or array, For file `" + currentFileName + "` in `" + file + "`. Ignoring this argument", ConsolePrint::Type::Warning);
+            }
+
+
+
+
+
+
+
+            // expanded_combine
+            HELL6_99MO_TYPE expanded_combine = buildFileH699.get(currentFileName + ".expanded_combine");
+            if (expanded_combine.type == "string"){
+                if (not (std::filesystem::is_directory(expanded_combine.string_value))){
+                    ConsolePrint::print("Error:- the path passed to the expanded_combine was not a directory, For file `" + currentFileName + "` in `" + file + "`. The Path `" + expanded_combine.string_value + "`. Critical error, Aborting the build!\n", ConsolePrint::Type::Error);
+                    std::exit (3);
+                }
+                if (buildFileH699.get(currentFileName + ".combine").type != H699_UNIDEF){
+                    ConsolePrint::print("Warning:- Ignoring expanded_combine because combine key already exists, For file `" + currentFileName + "` in `" + file + "`. The Path `" + expanded_combine.string_value + "`.", ConsolePrint::Type::Warning);
+                }
+                else {
+                    std::vector <std::string> total_files = {};
+                    for (std::string files : gdbs::listFilesInDirectory(expanded_combine.string_value)){
+                        total_files.push_back (expanded_combine.string_value + "/" + files);
+                    }
+                    buildFileH699.new_key(currentFileName + ".combine", "array");
+                    buildFileH699.set_array(currentFileName + ".combine", total_files);
+                }
+            }
+            else if (expanded_combine.type == "array"){
+                if (buildFileH699.get(currentFileName + ".combine").type != H699_UNIDEF){
+                    ConsolePrint::print("Warning:- Ignoring expanded_combine because combine key already exists, For file `" + currentFileName + "` in `" + file + "`.", ConsolePrint::Type::Warning);
+                }
+                else {
+                    std::vector <std::string> total_files = {};
+                    for (std::string path : expanded_combine.array_value){
+                        if (not (std::filesystem::is_directory(path))){
+                            ConsolePrint::print("Error:- the path passed to the expanded_combine was not a directory, For file `" + currentFileName + "` in `" + file + "`. The Path `" + path + "`. Critical error, Aborting the build!\n", ConsolePrint::Type::Error);
+                            std::exit (3);
+                        } 
+                        for (std::string files : gdbs::listFilesInDirectory(path)){
+                            total_files.push_back (path + "/" + files);
+                        }
+                    }
+                    buildFileH699.new_key(currentFileName + ".combine", "array");
+                    buildFileH699.set_array(currentFileName + ".combine", total_files);
+                }
+            }
+            else if (expanded_combine.type != H699_UNIDEF){
+                ConsolePrint::print("Warning:- the expanded_combine key can only contain a string or array, For file `" + currentFileName + "` in `" + file + "`. Ignoring this argument", ConsolePrint::Type::Warning);
+            }
+
+
+
+
+
+
+
+
+
+
+            // bin
             HELL6_99MO_TYPE bin = buildFileH699.get(currentFileName + ".bin");
             if (bin.type == "string"){
                 if (is_global) cfg_bin = bin.string_value;
@@ -688,7 +849,7 @@ namespace gdbs{
                     com.command = fcfg_psystem + "\n" + fcfg_compiler + " " + fcfg_compiler_parguments + " " + currentFileName  + " " + fcfg_combine_str + " " + fcfg_include + " " + fcfg_lib + " " + fcfg_pkg_in + " " + fcfg_compiler_arguments + " -o " + fcfg_out + "\n" + fcfg_system;
                     // std::cout <<com.command<<"\n"; 
                     
-                    com.output = fcfg_bin + "/" + fcfg_out;
+                    com.output = fcfg_out;
                     com.filename = currentFileName;
                     executer_list.push_back(com);
                 }
