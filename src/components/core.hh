@@ -30,6 +30,12 @@ namespace gdbs{
         std::string output;
         std::string filename;
     };
+
+    struct comp_file_t {
+        std::string h699_file_name;
+        std::string filename;
+        std::vector <std::string> files;
+    };
 }
 
 #endif
