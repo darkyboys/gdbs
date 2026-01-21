@@ -53,7 +53,7 @@ Anything starting without a `-` symbol will be taken as the path to `build.gdbs`
 #### Build File
 `GDBS` can only know what to do if you pass a `build.gdbs` file to it with the rules specified for what to build. Those rules will then be used to determine what to do.
 
-Before you learn about any rules you need to know the basics of the (https://github.com/darkyboys/hell6.99mo)[H699] Basics. If you don't know then you can always visit here (https://github.com/darkyboys/hell6.99mo)[H699]. Although this guide will cover very basics of H699 Cofig Format (The format you will be writing the `build.gdbs` in) it's still worth checking the official guide.
+Before you learn about any rules you need to know the basics of the [https://github.com/darkyboys/hell6.99mo](H699) Basics. If you don't know then you can always visit here [https://github.com/darkyboys/hell6.99mo](H699). Although this guide will cover very basics of H699 Cofig Format (The format you will be writing the `build.gdbs` in) it's still worth checking the official guide.
 
 #### Basics of H699
 `H699` is a fast and Open Source configuration format designed for C++ projects, The reason it was chosen as the DSL of `GDBS` was because not only it is super fast to execute but also it have a really forgiving nature for the configs, Essentially making the programmer happy all the day about getting less possible errors, Also it's super easy to read and write by humans and can be also modified by programs. So with that's all let's dive deep into the syntax.
