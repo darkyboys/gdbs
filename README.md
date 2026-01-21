@@ -86,7 +86,7 @@ property = "Some string value"
 anotherProperty = ["some", "array", "value"]
 ```
 
-> **Note** : This guide only covers what is needed for `GDBS`, It's still worth checking the [official documentation](https://github.com/darkyboys/hell6.99mo) for the project `H699`.
+> **Note** : This guide only covers what is needed for `GDBS`, It's still worth checking the (official documentation)[https://github.com/darkyboys/hell6.99mo] for the project `H699`.
 
 --- 
 
