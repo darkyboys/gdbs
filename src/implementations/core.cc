@@ -105,6 +105,8 @@ namespace gdbs{
         std::vector <std::string> cfg_combine,
                                   cfg_compare;
 
+        std::vector <gdbs::comp_file_t> updated_comp_file_h699 = {};
+
         bool is_global = false;
 
         // This part of the code is more lower level because this thing is manipulating the inputs at the file level
@@ -531,6 +533,21 @@ namespace gdbs{
 
 
 
+            std::string comp_file_name = currentFileName;
+            if (is_global){
+                comp_file_name = dsFilePath;
+            }
+            for (char &c : comp_file_name){
+                if (c == '/') c = '.';
+            }
+            comp_file_name = cacheDirectory + comp_file_name;
+
+            if (not (std::filesystem::exists(comp_file_name) and std::filesystem::is_regular_file(comp_file_name))){
+                std::ofstream ofile (comp_file_name);
+            }
+
+            HELL6_99MO hfile(comp_file_name);
+            hfile.Parse();
 
             HELL6_99MO_TYPE combine = buildFileH699.get(currentFileName + ".combine");
             std::vector <std::string> fcfg_combine_vector;
@@ -563,9 +580,13 @@ namespace gdbs{
                     ConsolePrint::print("Error:- the file `" + cfile + "` was not found to combine, For file `" + currentFileName + "` in `" + file + "`. Aborting the build!", ConsolePrint::Type::Error);
                     std::exit (3);
                 }
-                if (not gdbs::is_timestamp_same(cfile, openFilePathH699)){
+                if (not gdbs::is_timestamp_same(cfile, hfile)){
                     can_ignore_this_file = false;
-                    updatedFileVector.push_back(cfile);
+                    comp_file_t comp_file;
+                    comp_file.h699_file_name = comp_file_name;
+                    comp_file.filename = currentFileName;
+                    comp_file.files.push_back(cfile);
+                    updated_comp_file_h699.push_back(comp_file);
                 }
                 fcfg_combine_str += cfile + " ";
             }
@@ -612,9 +633,13 @@ namespace gdbs{
                     ConsolePrint::print("Error:- the file `" + cfile + "` was not found to compare, For file `" + currentFileName + "` in `" + file + "`. Aborting the build!", ConsolePrint::Type::Error);
                     std::exit (3);
                 }
-                if (not gdbs::is_timestamp_same(cfile, openFilePathH699)){
+                if (not gdbs::is_timestamp_same(cfile, hfile)){
                     can_ignore_this_file = false;
-                    updatedFileVector.push_back(cfile);
+                    comp_file_t comp_file;
+                    comp_file.h699_file_name = comp_file_name;
+                    comp_file.filename = currentFileName;
+                    comp_file.files.push_back(cfile);
+                    updated_comp_file_h699.push_back(comp_file);
                 }
             }
 
@@ -888,7 +913,28 @@ namespace gdbs{
             if (not is_err_file) set_timestamp(file, openFilePathH699);
         }
 
+
+        for (gdbs::comp_file_t comp : updated_comp_file_h699){
+            bool is_err_file = false;
+            for (std::string err : exec){
+                if (comp.filename == err){
+                    is_err_file = true;
+                    break;
+                }
+            }
+            if (not is_err_file){
+                HELL6_99MO hfile(comp.h699_file_name);
+                hfile.Parse();
+                for (std::string comp_file : comp.files){
+                    gdbs::set_timestamp(comp_file, hfile);
+                }
+                hfile.write(comp.h699_file_name);
+            }
+        }
+
         openFilePathH699.write(filePath);
+
+        if (is_anything_changed) core (file, cli_args, threads, allowed_incremental_build, show_command);
 
         return status;
     }
