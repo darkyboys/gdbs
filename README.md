@@ -53,7 +53,7 @@ Anything starting without a `-` symbol will be taken as the path to `build.gdbs`
 #### Build File
 `GDBS` can only know what to do if you pass a `build.gdbs` file to it with the rules specified for what to build. Those rules will then be used to determine what to do.
 
-Before you learn about any rules you need to know the basics of the [H699](https://github.com/darkyboys/hell6.99mo) Basics. If you don't know then you can always visit here [H699](https://github.com/darkyboys/hell6.99mo). Although this guide will cover very basics of H699 Cofig Format (The format you will be writing the `build.gdbs` in) it's still worth checking the official guide.
+Before you learn about any rules you need to know the basics of the (https://github.com/darkyboys/hell6.99mo)[H699] Basics. If you don't know then you can always visit here (https://github.com/darkyboys/hell6.99mo)[H699]. Although this guide will cover very basics of H699 Cofig Format (The format you will be writing the `build.gdbs` in) it's still worth checking the official guide.
 
 #### Basics of H699
 `H699` is a fast and Open Source configuration format designed for C++ projects, The reason it was chosen as the DSL of `GDBS` was because not only it is super fast to execute but also it have a really forgiving nature for the configs, Essentially making the programmer happy all the day about getting less possible errors, Also it's super easy to read and write by humans and can be also modified by programs. So with that's all let's dive deep into the syntax.
@@ -86,13 +86,42 @@ property = "Some string value"
 anotherProperty = ["some", "array", "value"]
 ```
 
-> **Note** : This guide only covers what is needed for `GDBS`, It's still worth checking the (official documentation)[https://github.com/darkyboys/hell6.99mo] for the project `H699`.
+> **Note** : This guide only covers what is needed for `GDBS`, It's still worth checking the [official documentation](https://github.com/darkyboys/hell6.99mo) for the project `H699`.
 
 --- 
 
 #### Important Part About GDBS
 Everything we need to do is done inside the `build.gdbs` file with some scopes and properties. There are some standard scopes and some standard properties and rest except them are just used to describe the source files.
 
+Also GDBS Build system builds in `cycles` means that if the build was interrupted during the build then the entire `cycle` will rebuild from the start to ensure the correctness in the build and eliminate all the random builds errors. 
+
+A `Cycle` means the total files who were supposed to be built.
+Let's suppose that you have 4 files.
+```bash
+a.c
+b.c
+c.c
+d.c
+```
+
+Now if you are building for the first time then all the files from `a.c` to `d.c` must build, So the current `cycle` will contain all the files from `a.c` to `d.c` and build them. However if the build was interrupted then the cycle will remain incomplete so the next time you build the project again the build system will restart that entire cycle again to rebuild from `a.c` to `d.c`. This is to ensure that all the builds were successfully performed with all the dependencies linked them them so no random error of starting the builds from where it was left. 
+
+Once the Build `Cycle` is completed then nothing will be rebuilt and only the changed files / dependencies will be rebuilt with a new `cycle`.
+
+For example:-
+We had `a.c` to `d.c` now let's suppose that `c.c` depends on `b.c` and `b.c` changed.
+So the moment you run the GDBS Again it will only build the new `cycle` and new `cycle` will store both `c.c` and `b.c` to be rebuilt because `c.c` relies on `b.c` so any change to `b.c` will also affect the `c.c` and that's why both will be built. But again interrupting a `cycle` means restarting the full rebuild for that particular `cycle`, Means if interrupted then `b.c` and `c.c` will rebuild again no matter what because GDBS Saves the timestamps only after the `cycle` completes.
+
+ > Note: This is not a bug so please do not report this in issues. This is an intended behaviour because GDBS Ensures correctness over UX.
+
+Also remember that GDBS is a cache sharing build system means it will share it's cache relative to the directory.
+Let's suppose we have
+```bash
+/dir1
+ - build.gdbs
+build.gdbs
+```
+Now if we execute `gdbs .` from the root directory then it will create it's cache in the root directory inside the `.gdbs-cache` directory, If we run it from `dir1` then it will build the cache inside it, How ever if you run `gdbs dir1` from the root directory then the gdbs will use the root directory's cache for `dir1` means it will look at the `build.gdbs` of `dir1` from the `root` fs path context. So be careful while writing build files in different directories because the context matters.
 ---
 
 #### Writing build.gdbs
@@ -238,6 +267,12 @@ ontriggerchange:
     command = "echo \"This will always run until the abc file exists and nothing changes\""
     need = "abc"
 ```
+
+
+##### afterchange
+`afterchange` is similar to `onchange`, It also takes the `command` and `commands` properties but it is used to run a command after the entire build cycle is completed. Unlike `onchange` and `ontriggerchange` which executes before the timestamps are updated. This was mainly introduced for highly complex builds which might need to call the build system multiple times because of cache sharing.
+
+
 
 ##### cli
 This is one of the most important additions to the `GDBS`, Because this directly allows the programers to take the input fromt the `CLI` and execute some commands for those inputs. This one can take any property as the argument and a dynamic `string/array` value as the commands to execute.

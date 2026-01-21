@@ -85,6 +85,7 @@ namespace gdbs{
 
         std::vector <std::string> cli,
                                   callback,
+                                  afterchange,
                                   onchange,
                                   ontriggerchange;
         bool is_anything_changed = false;
@@ -326,6 +327,54 @@ namespace gdbs{
                 else if (ontriggerchange_need.type != H699_UNIDEF){
                     ConsolePrint::print("Warning:- ontriggerchange.commands can only be an array type. Please refer the ontriggerchange.command if you need a single command to be executed.", ConsolePrint::Type::Warning);
                 }
+                continue;
+            }
+
+
+
+
+
+
+
+
+
+            if (currentFileName == "afterchange"){
+                HELL6_99MO_TYPE afterchange_value = buildFileH699.get(currentFileName + ".command");
+                if (afterchange_value.type == "string"){
+                    afterchange.push_back(afterchange_value.string_value);
+                }
+                else if (afterchange_value.type != H699_UNIDEF){
+                    ConsolePrint::print("Warning:- afterchange.command can only be a string type. Please refer the afterchange.commands if you need a list of commands to be executed.", ConsolePrint::Type::Warning);
+                }
+
+
+                HELL6_99MO_TYPE afterchange_arr_value = buildFileH699.get(currentFileName + ".commands");
+                if (afterchange_arr_value.type == "array"){
+                    afterchange = afterchange_arr_value.array_value;
+                }
+                else if (afterchange_arr_value.type != H699_UNIDEF){
+                    ConsolePrint::print("Warning:- afterchange.commands can only be an array type. Please refer the afterchange.command if you need a single command to be executed.", ConsolePrint::Type::Warning);
+                }
+
+
+                HELL6_99MO_TYPE afterchange_need = buildFileH699.get(currentFileName + ".need");
+                if (afterchange_need.type == "string"){
+                    if (not std::filesystem::exists(afterchange_need.string_value)){
+                        is_anything_changed = true;
+                    }
+                }
+                else if (afterchange_need.type == "array"){
+                    for (std::string f : afterchange_need.array_value){
+                        if (not std::filesystem::exists(f)){
+                            is_anything_changed = true;
+                            break;
+                        }
+                    }
+                }
+                else if (afterchange_need.type != H699_UNIDEF){
+                    ConsolePrint::print("Warning:- afterchange.commands can only be an array type. Please refer the afterchange.command if you need a single command to be executed.", ConsolePrint::Type::Warning);
+                }
+
                 continue;
             }
 
@@ -934,7 +983,10 @@ namespace gdbs{
 
         openFilePathH699.write(filePath);
 
-        if (is_anything_changed) core (file, cli_args, threads, allowed_incremental_build, show_command);
+        // Run the after change after everything
+        for (std::string com : afterchange){
+            if (is_anything_changed) std::system(com.c_str());
+        }
 
         return status;
     }
