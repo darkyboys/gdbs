@@ -106,6 +106,7 @@ namespace gdbs{
         std::vector <std::string> cfg_combine,
                                   cfg_compare;
 
+
         std::vector <gdbs::comp_file_t> updated_comp_file_h699 = {};
 
         bool is_global = false;
@@ -432,6 +433,36 @@ namespace gdbs{
 
 
             // Checking the essential configurations no matter what
+            // expanded_compare_ignore
+            std::vector <std::string> expanded_compare_ignore_vector;
+            HELL6_99MO_TYPE expanded_compare_ignore = buildFileH699.get(currentFileName + ".expanded_compare_ignore");
+            if (expanded_compare_ignore.type == "string"){
+                expanded_compare_ignore_vector.push_back(expanded_compare_ignore.string_value);
+            }
+            else if (expanded_compare_ignore.type == "array"){
+                expanded_compare_ignore_vector = expanded_compare_ignore.array_value;
+            }
+            else if (expanded_compare_ignore.type != H699_UNIDEF){
+                ConsolePrint::print("Warning:- the expanded_compare_ignore key can only contain a string or array, For file `" + currentFileName + "` in `" + file + "`. Ignoring this argument", ConsolePrint::Type::Warning);
+            }
+
+
+
+            // expanded_combine_ignore
+            std::vector <std::string> expanded_combine_ignore_vector;
+            HELL6_99MO_TYPE expanded_combine_ignore = buildFileH699.get(currentFileName + ".expanded_combine_ignore");
+            if (expanded_combine_ignore.type == "string"){
+                expanded_combine_ignore_vector.push_back(expanded_combine_ignore.string_value);
+            }
+            else if (expanded_combine_ignore.type == "array"){
+                expanded_combine_ignore_vector = expanded_combine_ignore.array_value;
+            }
+            else if (expanded_combine_ignore.type != H699_UNIDEF){
+                ConsolePrint::print("Warning:- the expanded_combine_ignore key can only contain a string or array, For file `" + currentFileName + "` in `" + file + "`. Ignoring this argument", ConsolePrint::Type::Warning);
+            }
+            
+
+
             // expanded_compare
             HELL6_99MO_TYPE expanded_compare = buildFileH699.get(currentFileName + ".expanded_compare");
             if (expanded_compare.type == "string"){
@@ -445,6 +476,13 @@ namespace gdbs{
                 else {
                     std::vector <std::string> total_files = {};
                     for (std::string files : gdbs::listFilesInDirectory(expanded_compare.string_value)){
+                        bool can_skip = false;
+                        for (std::string expanded_compare_ignore_vector_file : expanded_compare_ignore_vector){
+                            if ((expanded_compare.string_value + "/" + files) == expanded_compare_ignore_vector_file){
+                                can_skip = true;
+                            }
+                        }
+                        if (can_skip) continue;
                         total_files.push_back (expanded_compare.string_value + "/" + files);
                     }
                     buildFileH699.new_key(currentFileName + ".compare", "array");
@@ -463,6 +501,13 @@ namespace gdbs{
                             std::exit (3);
                         } 
                         for (std::string files : gdbs::listFilesInDirectory(path)){
+                            bool can_skip = false;
+                            for (std::string expanded_compare_ignore_vector_file : expanded_compare_ignore_vector){
+                                if ((expanded_compare.string_value + "/" + files) == expanded_compare_ignore_vector_file){
+                                    can_skip = true;
+                                }
+                            }
+                            if (can_skip) continue;
                             total_files.push_back (path + "/" + files);
                         }
                     }
@@ -493,6 +538,13 @@ namespace gdbs{
                 else {
                     std::vector <std::string> total_files = {};
                     for (std::string files : gdbs::listFilesInDirectory(expanded_combine.string_value)){
+                        bool can_skip = false;
+                        for (std::string expanded_combine_ignore_vector_file : expanded_combine_ignore_vector){
+                            if ((expanded_combine.string_value + "/" + files) == expanded_combine_ignore_vector_file){
+                                can_skip = true;
+                            }
+                        }
+                        if (can_skip) continue;
                         total_files.push_back (expanded_combine.string_value + "/" + files);
                     }
                     buildFileH699.new_key(currentFileName + ".combine", "array");
@@ -511,6 +563,13 @@ namespace gdbs{
                             std::exit (3);
                         } 
                         for (std::string files : gdbs::listFilesInDirectory(path)){
+                            bool can_skip = false;
+                            for (std::string expanded_combine_ignore_vector_file : expanded_combine_ignore_vector){
+                                if ((expanded_combine.string_value + "/" + files) == expanded_combine_ignore_vector_file){
+                                    can_skip = true;
+                                }
+                            }
+                            if (can_skip) continue;
                             total_files.push_back (path + "/" + files);
                         }
                     }
@@ -975,6 +1034,10 @@ namespace gdbs{
                 HELL6_99MO hfile(comp.h699_file_name);
                 hfile.Parse();
                 for (std::string comp_file : comp.files){
+                    if (not (std::filesystem::exists(comp_file) and std::filesystem::is_regular_file(comp_file))){
+                        ConsolePrint::print("GDBS Error:- The file `" + comp_file + "` was does not exists or it was a directory not a file. Couldn't register it in the cache.");
+                        continue;
+                    }
                     gdbs::set_timestamp(comp_file, hfile);
                 }
                 hfile.write(comp.h699_file_name);

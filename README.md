@@ -280,8 +280,8 @@ This is one of the most important additions to the `GDBS`, Because this directly
 *Example*
 ```bash
 cli:
-    -install : "cp myapp /usr/local/bin
-    -make    : [
+    -install = "cp myapp /usr/local/bin"
+    -make = [
         "echo \"Now the directory looks like\"",
         "ls"
     ]
@@ -341,7 +341,12 @@ myfile.cc:
         "dir/dir2"
     ]
 ```
-It will automatically cr the work of creating compare for you for each file inside the directories. Combine is same just different naming.
+
+It will automatically do the work of creating compare for you for each file inside the directories. Combine is same just different naming.
+
+If you don't wanna include a particular file during the expansion then you can use the `expanded_compare_ignore` and `expanded_combine_ignore` respectively. They can take both a string for a single file and an array of strings for multiple files.
+
+So let's suppose you wanna expand to link the object files but the object files also contains the duplicate files. Now you want to ignore them to get rid of linking errors then you can use the `_ignore` suffix respectively.
 
  > Note: They do creates new values but your physical file remains untouched! Everything happens in the file stored in the memory.
 
