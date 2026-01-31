@@ -11,5 +11,7 @@ onchange:
     commands = ["echo \"Process finished!\"", "ls"]
 
 example/a.cc:
-example/b.cc: compare = ["example/a.cc", "example/c.cc"]
+example/b.cc: 
+    expanded_compare = "example"
+    expanded_compare_ignore = ["example/build.gdbs", "example/a.cc"]
 example/c.cc: compare = "example/a.cc"
