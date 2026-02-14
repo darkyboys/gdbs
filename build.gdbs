@@ -2,11 +2,11 @@
 # This must be run from the root of the repo
 
 cli:
-    -clean = "rm -rf bin objects .gdbs-cache "
+    -clean = "rm -rf bin objects .gdbs-cache cache"
     -install = "sudo mv bin/gdbs /usr/local/bin"
 
 onchange:
-    command = "gdbs link"
+    command = "gdbs link -cd cache"
     need = "bin/gdbs"
 
 global:

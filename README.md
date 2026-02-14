@@ -36,6 +36,7 @@ Everything in `CLI` is a flag used to tell `GDBS` what to check.
  - *--show-commands / -sc* : These flags tell the `GDBS` to not only log about what file is currently being built but also show the commands being used to compile that file.
  - *--clean / -c* : These flags tells the `GDBS` to rebuild the entire cache and rebuild your entire project from exact zero.
  - *--noincrement / -ni* : These flags tells the `GDBS` to skip the incremental build and build your entire project no matter what while keeping all the previous configs safe.
+ - *--cache-dir / -cd [number]* : These flags tells the `GDBS` to use a different cache directory. This is super important if you are using dual stage builds where at first gdbs builds objects and then you use a different build file to build binaries. By default gdbs uses `.gdbs-cache` directory to store it's cache. But for dual stage builds make sure to use different directories to prevent overwriting each other's build cache. Corrupted cache can result in unnecessary rebuilds.
  
 **Usage**
 ```bash
