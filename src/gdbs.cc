@@ -22,7 +22,7 @@ int main(int argc, char* argv[]){
         std::cout << R"(
 ┌──────────────────────────────────────┐
 │                                      │
-│   Goblin's Demonic Build System 1.4  │
+│   Goblin's Demonic Build System 1.5  │
 │                                      │
 └──────────────────────────────────────┘
 ╭──────────────────────────────────────╮
@@ -42,6 +42,10 @@ int main(int argc, char* argv[]){
 │ 5.) --noincrement: disables the      │
 │     incremental build.               │
 │                                      │
+│ 6.) --cache-dir: sets the cache      │
+│     directory for the build system   │
+│     to use.                          │
+│                                      │
 ╰──────────────────────────────────────╯
 
         )";
@@ -52,7 +56,8 @@ int main(int argc, char* argv[]){
         std::string path = ".";
         bool allowed_incremental_build = true;
         bool show_command = false;
-        
+        std::string cache_directory = ".gdbs-cache/";
+
         for (int i = 1;i < argc;i++){
             std::string argument = argv[i];
             if (argument == "--version" or argument == "-v"){
@@ -89,6 +94,17 @@ int main(int argc, char* argv[]){
                     i+=1; // Ignore the extra argument
                 }
             }
+            else if (argument == "--cache-dir" or argument == "-cd"){
+                if (argc - 1 == i){
+                    ConsolePrint::print ("Error: Needs the path to the cache directory, Please execute gdbs without any argument for the offline documentation.", ConsolePrint::Type::Error);
+                    std::exit (3);
+                }
+                else {
+                    cache_directory = std::string(argv[i+1]);
+                    cache_directory += "/";
+                    i+=2;
+                }
+            }
             else if (argument == "--clean" or argument == "-c"){
                 std::system ("rm -rf .gdbs-cache"); // Remove the gdbs cache to clean the project
             }
@@ -112,6 +128,6 @@ int main(int argc, char* argv[]){
         }
 
         // std::cout << "Allowed Increment: "<<allowed_incremental_build<<"\n";
-        gdbs::core(path + "/build.gdbs", args, total_threads, allowed_incremental_build, show_command);
+        gdbs::core(path + "/build.gdbs", args, total_threads, allowed_incremental_build, show_command, cache_directory);
     }
 }

@@ -16,10 +16,10 @@
 #include <ConsolePrint/ConsolePrint.hh>
 
 namespace gdbs {
-    std::vector <std::string> executer(std::vector <gdbs::core_file_t> tokens, int thread_limit, bool show_command){
+    std::vector <std::string> executer(std::vector <gdbs::core_file_t> tokens, int thread_limit, bool show_command, std::string cache_directory){
         int active_threads = 0;
         // This part is taken from the core.cc so this must be updated with it as well
-        const std::string CACHE_DIRECTORY = ".gdbs-cache/"; // The directory where the cache files will be created
+        const std::string CACHE_DIRECTORY = cache_directory; // The directory where the cache files will be created
         const std::string DS_FILE = CACHE_DIRECTORY + "ds.h699"; // The data set file path
         const std::string IPC_FILE = CACHE_DIRECTORY + "ipc.file"; // The inter process cmmunication file path
         // The part from the core.cc ends here

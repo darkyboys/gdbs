@@ -63,10 +63,10 @@ namespace gdbs{
 
 
 
-    int core(std::string file, std::vector <std::string> cli_args, int threads, bool allowed_incremental_build, bool show_command){ // Takes the file's path as a full file.
+    int core(std::string file, std::vector <std::string> cli_args, int threads, bool allowed_incremental_build, bool show_command, std::string cache_directory){ // Takes the file's path as a full file.
         int status = 0; // This will be the return value to tell the programmer if something goes right or wrong
         const std::string dsFilePath = "ds.h699";
-        const std::string cacheDirectory = ".gdbs-cache/";
+        const std::string cacheDirectory = cache_directory;
         bool can_ignore_this_file = false;
         std::string filePath = cacheDirectory + dsFilePath;
         if (!(std::filesystem::exists(filePath) and std::filesystem::is_regular_file(filePath))){
@@ -997,7 +997,7 @@ namespace gdbs{
             if (is_anything_changed) std::system(com.c_str());
         }
 
-        std::vector <std::string> exec = gdbs::executer(executer_list, threads, show_command);
+        std::vector <std::string> exec = gdbs::executer(executer_list, threads, show_command, cache_directory);
         // Execute the onchange before the executer
         for (std::string com : onchange){
             if (is_anything_changed) std::system(com.c_str());

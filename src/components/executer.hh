@@ -23,6 +23,6 @@
 #include <components/fs-utils.hh>
 
 namespace gdbs {
-    std::vector <std::string> executer(std::vector <gdbs::core_file_t> tokens, int thread_limit = std::thread::hardware_concurrency(), bool show_command = false);
+    std::vector <std::string> executer(std::vector <gdbs::core_file_t> tokens, int thread_limit = std::thread::hardware_concurrency(), bool show_command = false, std::string cache_directory = ".gdbs-cache/");
 }
 #endif
