@@ -19,7 +19,7 @@ sudo mv gdbs /usr/local/bin
 ```bash
 git clone https://github.com/darkyboys/gdbs
 cd gdbs
-gdbs ,
+gdbs .
 sudo gdbs -install
 ```
 
