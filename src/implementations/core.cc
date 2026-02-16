@@ -789,6 +789,14 @@ namespace gdbs{
                     if (is_global) cfg_compiler_parguments = compiler_parguments.string_value;
                     else fcfg_compiler_parguments = compiler_parguments.string_value;
                 }
+                else if (compiler_parguments.type == "array"){
+                    std::string normalize = "";
+                    for (std::string item : compiler_parguments.array_value){
+                        normalize += item + " ";
+                    }
+                    if (is_global) cfg_compiler_parguments = normalize;
+                    else fcfg_compiler_parguments = normalize;
+                }
                 else if (compiler_parguments.type != H699_UNIDEF){
                     ConsolePrint::print("Warning:- the compiler_parguments key can only contain a string, For file `" + currentFileName + "` in `" + file + "`. Ignoring this argument", ConsolePrint::Type::Warning);
                 }
@@ -804,6 +812,14 @@ namespace gdbs{
                 if (compiler_arguments.type == "string"){
                     if (is_global) cfg_compiler_arguments = compiler_arguments.string_value;
                     else fcfg_compiler_arguments = compiler_arguments.string_value;
+                }
+                else if (compiler_arguments.type == "array"){
+                    std::string normalize = "";
+                    for (std::string item : compiler_arguments.array_value){
+                        normalize += item + " ";
+                    }
+                    if (is_global) cfg_compiler_arguments = normalize;
+                    else fcfg_compiler_arguments = normalize;
                 }
                 else if (compiler_arguments.type != H699_UNIDEF){
                     ConsolePrint::print("Warning:- the compiler_arguments key can only contain a string, For file `" + currentFileName + "` in `" + file + "`. Ignoring this argument", ConsolePrint::Type::Warning);
@@ -1009,6 +1025,9 @@ namespace gdbs{
         }
 
 
+
+
+        // Time stamp registerer
         for (std::string file : updatedFileVector){
             bool is_err_file = false;
             for (std::string err : exec){
@@ -1018,7 +1037,12 @@ namespace gdbs{
                 }
             }
 
-            if (not is_err_file) set_timestamp(file, openFilePathH699);
+            if (not is_err_file) {
+                if (std::filesystem::exists(file) and std::filesystem::is_regular_file(file)){
+                    set_timestamp(file, openFilePathH699);
+                }
+                else ConsolePrint::print("The file `" + file + "` was not found. So ignoring it's registery in the cache. This file will rebuild again.", ConsolePrint::Type::Warning);
+            }
         }
 
 
@@ -1038,7 +1062,8 @@ namespace gdbs{
                         ConsolePrint::print("GDBS Error:- The file `" + comp_file + "` was does not exists or it was a directory not a file. Couldn't register it in the cache.");
                         continue;
                     }
-                    gdbs::set_timestamp(comp_file, hfile);
+                    if (std::filesystem::exists(comp_file) and std::filesystem::is_regular_file(comp_file)) gdbs::set_timestamp(comp_file, hfile);
+                    else ConsolePrint::print("The file `" + comp_file + "` was not found. So ignoring it's registery in the cache. This file will rebuild again.", ConsolePrint::Type::Warning);
                 }
                 hfile.write(comp.h699_file_name);
             }
