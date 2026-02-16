@@ -133,6 +133,8 @@ So if we had `1.cc` already built but errors for the opther files and the next t
 
 So is this a bug ? And the answer is. No. This is not a bug this is very intentional because if the time stamps were actually updated after the compilation commands for a file ended then first it would trigger so many file system calls like 100 times for a 100 file long project which is a massive overhead and can slow down the compilation and also updating time stamps after builds can confuse the build system the next time you try to rebuild so it might become buggy in edge cases so in order to handle this GDBS only updates all it's time stamps at once inside the memory and after they are updated it writes them directly to the cache at once so we get extremely low overhead and closed the door for timestamp related compilation bugs.
 
+ > Note: Again saying. GDBS is a build system for correctness and speed in threading not the build system for interrupt level time stamp managment.
+
 Also remember that GDBS is a cache sharing build system means it will share it's cache relative to the directory.
 Let's suppose we have
 ```bash
