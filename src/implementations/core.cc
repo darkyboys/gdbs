@@ -12,9 +12,8 @@
 #include <components/core.hh>
 #include <components/fs-utils.hh>
 #include <components/executer.hh>
-#include <cstdlib>
-#include <filesystem>
-#include <fstream>
+#include <tuple>
+
 #define PKGCONF_FILE ".gdbs-cache/pkg-config.stdout"
 
 namespace gdbs{
@@ -154,6 +153,52 @@ namespace gdbs{
             if (currentFileName[currentFileName.length()-1] == '*' and currentFileName[currentFileName.length()-2] == '/'){
                 // std::cout << "Detected!\n"; // for debugging only
                 std::string path = currentFileName;
+                HELL6_99MO_TYPE ext = buildFileH699.get(currentFileName + ".ext");
+                std::string extension = "bin";
+                if (ext.type == "string"){
+                    extension = ext.string_value;
+                }
+                else if (ext.type != H699_UNIDEF){
+                    ConsolePrint::print("Warning:- ext for `" + currentFileName + "` can only store strings! Ignoring different types.");
+                }
+
+
+
+
+                HELL6_99MO_TYPE only = buildFileH699.get(currentFileName + ".only");
+                bool only_found = false;
+                std::vector <std::string> cfg_only = {"c", "cpp", "cc", "cxx", "c++"};
+                if (only.type == "string"){
+                    only_found = true;
+                    cfg_only = {only.string_value};
+                }
+                else if (only.type == "array"){
+                    only_found = true;
+                    cfg_only = only.array_value;
+                }
+                else if (only.type != H699_UNIDEF){
+                    ConsolePrint::print("Warning:- only for `" + currentFileName + "` can only store strings and arrays! Ignoring different types.");
+                }
+
+
+
+
+
+                HELL6_99MO_TYPE ignore = buildFileH699.get(currentFileName + ".ignore");
+                std::vector <std::string> cfg_ignore;
+                if (ignore.type == "string"){
+                    cfg_ignore = {ignore.string_value};
+                }
+                else if (ignore.type == "array"){
+                    cfg_ignore = ignore.array_value;
+                }
+                else if (ignore.type != H699_UNIDEF){
+                    ConsolePrint::print("Warning:- ignore for `" + currentFileName + "` can ignore store strings and arrays! Ignoring different types.");
+                }
+
+
+
+
                 path = path.substr(0, path.length()-1);
                 if (not (std::filesystem::is_directory(path))){
                     ConsolePrint::print("Error:- Couldn't expand `" + currentFileName + "` because `" + path + "` was not a directory. Aborting the build!\n");
@@ -161,10 +206,37 @@ namespace gdbs{
                 }
                 buildFileH699.scopes[i] = ""; // make it empty so that the expanding instruction becomes nothing and being ignored by the core later
                 for (std::string fileAtPath : gdbs::listFilesInDirectory(path)){
-                    buildFileH699.scopes.insert(buildFileH699.scopes.begin() + i, path + fileAtPath);
-                    // std::cout << buildFileH699.scopes[i] <<"\n"; // for debugging
-                    buildFileH699.new_key(path + fileAtPath + ".out", "string");
-                    // std::cout << path + fileAtPath + ".out" << "\n\n"; // for debugging
+                    
+                    bool is_supported = false; // extension
+                    std::string extension_buffer;
+                    for (std::size_t x = fileAtPath.length()-1;x > 0;x--){
+                        if (fileAtPath[x] == '.') break;
+                        else extension_buffer += fileAtPath[x];
+                    }
+
+
+                    for (std::string supported_extensions : cfg_only){
+                        if (extension_buffer == supported_extensions){
+                            is_supported = true;
+                            break;
+                        }
+                    }
+
+                    if (not is_supported and only_found) continue; // ignore if not supported and only was found
+
+
+
+                    bool can_ignore_file = false; // To manage ignores
+                    for (std::string ignore_file : cfg_ignore){
+                        if (fileAtPath == ignore_file){
+                            can_ignore_file = true;
+                            break;
+                        }
+                    }
+                    if (can_ignore_file) continue;
+
+
+                    
                     std::string file_name_token;
                     std::string buffer;
                     bool dot_found = false;
@@ -174,20 +246,17 @@ namespace gdbs{
                             file_name_token += buffer;
                             buffer.clear();
                         } 
-                        buffer += fileAtPath[x];
+                        else buffer += fileAtPath[x];
                     }
                     if (dot_found == false){
                         file_name_token = buffer;
                     }
-                    HELL6_99MO_TYPE ext = buildFileH699.get(currentFileName + ".ext");
-                    std::string extension = "bin";
-                    if (ext.type == "string"){
-                        extension = ext.string_value;
-                    }
-                    else if (ext.type != H699_UNIDEF){
-                        ConsolePrint::print("Warning:- ext for `" + currentFileName + "` can only store strings! Ignoring different types.");
-                    }
+                    
                     file_name_token = file_name_token + "." + extension;
+                    buildFileH699.scopes.insert(buildFileH699.scopes.begin() + i, path + fileAtPath);
+                    // std::cout << buildFileH699.scopes[i] <<"\n"; // for debugging
+                    buildFileH699.new_key(path + fileAtPath + ".out", "string");
+                    // std::cout << path + fileAtPath + ".out" << "\n\n"; // for debugging
                     buildFileH699.set(path + fileAtPath + ".out", file_name_token);
                 }
                 i--;
@@ -217,6 +286,12 @@ namespace gdbs{
                 }
                 continue;
             }
+
+
+
+
+            if (currentFileName == "")
+                continue; // continue for empty files
 
 
 

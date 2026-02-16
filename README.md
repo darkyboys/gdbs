@@ -19,8 +19,7 @@ sudo mv gdbs /usr/local/bin
 ```bash
 git clone https://github.com/darkyboys/gdbs
 cd gdbs
-gdbs .
-sudo gdbs -install
+sudo gdbs . -make -install
 ```
 
 ## How To Use
@@ -413,6 +412,35 @@ src/c.cc: out = "c.o"
 ```
 
 Again repeating! All this happens inside the file stored in the memory not the actual build file you wrote yourself.
+
+Now while expanding files you might now want some files to be compiled like `.png` or `.o` as they can cause errors so you have to tell the `GDBS` that while expansion it should not add those files. 
+
+This can be done in 2 ways.
+
+**With `only`**: `only` is a property like `ext` for expansion which can take both `strings` and `arrays` to actually store the file extensions. `GDBS` Will only add the files with extensions defined in this properties.
+
+Example:-
+I only want `.c` and `.cpp` files to be expanded from the `src` directory so i can write.
+```bash
+src/*:
+    only = [
+        "c",
+        "cpp"
+    ]
+```
+
+This is a way if you want to remove a bulk of files from being added inside the memory during the expansion. But if you just want to remove a few specific files then you can use `ignore`.
+
+**With `ignore`**: `ignore` is a property like `only` as it can take both `string` and `array` values but it's used to tell the `GDBS` Exactly what files you do not want to compile during expansion.
+
+Example:
+Let's say that i don't want to include a file `main.o` during expansion so i can just say
+```bash
+src/*:
+    ignore = "main.o"
+```
+
+Always remember that what ever path you are going to give to ignore must be relative to the directory you are expanding in our case it was `src` so instead of writing `src/main.o` we just wrote `main.o`.
 --- 
 
 ### Real Life Example Of A build.gdbs
