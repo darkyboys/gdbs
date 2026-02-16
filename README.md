@@ -94,16 +94,18 @@ anotherProperty = ["some", "array", "value"]
 #### Important Part About GDBS
 Everything we need to do is done inside the `build.gdbs` file with some scopes and properties. There are some standard scopes and some standard properties and rest except them are just used to describe the source files.
 
+
+This part was removed from the gdbs 1.6
+
+```txt
 Also GDBS Build system builds in `cycles` means that if the build was interrupted during the build then the entire `cycle` will rebuild from the start to ensure the correctness in the build and eliminate all the random builds errors. 
 
 A `Cycle` means the total files who were supposed to be built.
 Let's suppose that you have 4 files.
-```bash
 a.c
 b.c
 c.c
 d.c
-```
 
 Now if you are building for the first time then all the files from `a.c` to `d.c` must build, So the current `cycle` will contain all the files from `a.c` to `d.c` and build them. However if the build was interrupted then the cycle will remain incomplete so the next time you build the project again the build system will restart that entire cycle again to rebuild from `a.c` to `d.c`. This is to ensure that all the builds were successfully performed with all the dependencies linked them them so no random error of starting the builds from where it was left. 
 
@@ -113,7 +115,21 @@ For example:-
 We had `a.c` to `d.c` now let's suppose that `c.c` depends on `b.c` and `b.c` changed.
 So the moment you run the GDBS Again it will only build the new `cycle` and new `cycle` will store both `c.c` and `b.c` to be rebuilt because `c.c` relies on `b.c` so any change to `b.c` will also affect the `c.c` and that's why both will be built. But again interrupting a `cycle` means restarting the full rebuild for that particular `cycle`, Means if interrupted then `b.c` and `c.c` will rebuild again no matter what because GDBS Saves the timestamps only after the `cycle` completes.
 
- > Note: This is not a bug so please do not report this in issues. This is an intended behaviour because GDBS Ensures correctness over UX.
+ > Note: This is not a bug so please do not report this in issues. This is an intended behaviour because GDBS Ensures correctness over UX. 
+```
+
+The `cycles` were removed because they were replaced by updative builds. In updative builds the `GDBS` (1.6+) only builds what's actually needed so in case if your previous compilation had some errors then unlike `cycles` where the build system would build everything in that `cycle`, Updative Builds will only build the remaining files which had errors. But again remeber that time stamp update is only performed after everything is finished means if you have interrupted the build then the timestamps won't be updated means it will still build what you were building again (Not the whole build).
+
+So let's say that we have 4 files:
+```bash
+1.cc
+2.cc
+3.cc
+4.cc
+```
+You ran `GDBS` but `2.cc` had an error so it was not built but `1.cc` , `4.cc`, `3.cc` were built in that case the `GDBS` Will warn you about the `2.cc` . But the next time you run `gdbs` it will only build `2.cc`. How ever if you interrupted the `GDBS` while it was building then it will still build all the 4 files the next time you run it because the time stamps weren't updated.
+
+So if we had `1.cc` already built but errors for the opther files and the next time we ran it started building `2.cc`, `3.cc`, `4.cc` and you interrupted it in mid build then it will build all of those 3 files again no matter what because timestamps for `1.cc` were registered but not for them.
 
 Also remember that GDBS is a cache sharing build system means it will share it's cache relative to the directory.
 Let's suppose we have
