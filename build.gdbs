@@ -4,6 +4,7 @@
 cli:
     -clean = "rm -rf bin objects .gdbs-cache cache"
     -install = "sudo mv bin/gdbs /usr/local/bin"
+    -make = "gdbs ."
 
 onchange:
     command = "gdbs link -cd cache"
