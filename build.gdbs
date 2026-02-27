@@ -11,7 +11,7 @@ onchange:
     need = "bin/gdbs"
 
 global:
-    compiler_parguments = "-c -O2"
+    compiler_parguments = "-c"
     bin = "objects"
     include = [
         "include",

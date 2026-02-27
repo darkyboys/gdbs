@@ -215,7 +215,14 @@ namespace gdbs{
                     }
 
 
+                    std::string temp_buffer;
+                    const std::size_t NEG = -1;
+                    for (std::size_t x = extension_buffer.length()-1;x != NEG;x--)
+                        temp_buffer += extension_buffer[x];
+
+                    extension_buffer = temp_buffer;
                     for (std::string supported_extensions : cfg_only){
+                        // std::cout << supported_extensions<<" = buffer["<<extension_buffer<<"]\n\n"; // only for deugging
                         if (extension_buffer == supported_extensions){
                             is_supported = true;
                             break;
