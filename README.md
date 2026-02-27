@@ -180,13 +180,13 @@ These are in 2 types:
 ##### compiler - Static string property
 `compiler` is a property which tells the GDBS the compiler you want to use to compile all your source files , Default is `g++`.
 
-##### compiler_arguments - Static string property
+**Dynamic Array Type** These types supports _rem and _add as suffix to remove anything or add anything to them respectively.
+
+##### compiler_arguments - Dynamic string property
 `compiler_arguments` is a property which tells the GDBS the arguments you want to give to your compiler , Default is empty.
 
-##### compiler_parguments - Static string property
+##### compiler_parguments - Dynamic string property
 `compiler_parguments` stands for the `compiler_primary_arguments` which is a property giving arguments to your compiler before the file name so if you want to make let say object files then say `compiler_parguments = "-c"`.
-
-**Dynamic Array Type** These types supports _rem and _add as suffix to remove anything or add anything to them respectively.
 
 ##### system - Static string property
 `system` is a property which tells the GDBS the command you want to execute when a target is built , This won't run if the target is skipped in incremental builds , Default is empty.

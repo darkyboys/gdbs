@@ -22,7 +22,7 @@ int main(int argc, char* argv[]){
         std::cout << R"(
 ┌──────────────────────────────────────┐
 │                                      │
-│   Goblin's Demonic Build System 1.7  │
+│   Goblin's Demonic Build System 1.7F │
 │                                      │
 └──────────────────────────────────────┘
 ╭──────────────────────────────────────╮
