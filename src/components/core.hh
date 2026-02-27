@@ -10,7 +10,7 @@
 // Header
 // STL
 #ifndef GDBS_CORE_HH
-#define GDBS_CORE_HH 1.1
+#define GDBS_CORE_HH 1.7
 
 #include <string>
 #include <thread>
