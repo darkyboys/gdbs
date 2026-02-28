@@ -37,6 +37,7 @@ Everything in `CLI` is a flag used to tell `GDBS` what to check.
  - *--clean / -c* : These flags tells the `GDBS` to rebuild the entire cache and rebuild your entire project from exact zero.
  - *--noincrement / -ni* : These flags tells the `GDBS` to skip the incremental build and build your entire project no matter what while keeping all the previous configs safe.
  - *--cache-dir / -cd [number]* : These flags tells the `GDBS` to use a different cache directory. This is super important if you are using dual stage builds where at first gdbs builds objects and then you use a different build file to build binaries. By default gdbs uses `.gdbs-cache` directory to store it's cache. But for dual stage builds make sure to use different directories to prevent overwriting each other's build cache. Corrupted cache can result in unnecessary rebuilds.
+ - *--build-type / -bt [string]* : These flags tells the `GDBS` to build the project in a specific way that the project supports. Some projects supports dual type of builds of cross platform support or even different compiler options, In that case you can pass the build type here like (--build-type Debug). But the project must support the build type.
  
 **Usage**
 ```bash
@@ -442,6 +443,61 @@ src/*:
 
 Always remember that what ever path you are going to give to ignore must be relative to the directory you are expanding in our case it was `src` so instead of writing `src/main.o` we just wrote `main.o`.
 --- 
+
+### Build Type in GDBS.
+Build types in `GDBS` were added in `GDBS 1.8` to improve the cli flexibility for the build system. Imagine you want to support multiple compilers for your project. If you ever say that you can just switch global in the build file like this:
+
+```bash
+global:
+    compiler = "g++"
+a.cc:
+b.cc:
+
+global:
+    compiler = "clang++"
+
+c.cc:
+```
+All of these files will be compiled with `clang++` because H699 is a One Time Parsed config means all the config will be parsed in one go so latest global will overwrite the property of the old global , In our case `compiler = "g++"` will become `compiler = "clang++"` in the memory. So this is not the solution.
+
+Now you might say **We can just copy the build file** and change the compiler in it then use the cli arguments to call different build files. It works but it's not a good thing because you will have to update multiple files. This is still doable for just 2 compilers but what if there are a lot, Like 3 or 4. Then this becomes very impractical because no one's going to update 3 or 4 build files right ? 
+
+For this exact problem `GDBS 1.8` Introduced **Build Types**. You can use these to dynamically generate correct global flag for your build.
+
+For creating a build type. You need to create a file named `build-type.gdbs` In this file what ever cli option you want to support should be written as a scope and what ever global property you want to change should be written as it's properties.
+
+Like if i want to support `clang` builds then i can just make a `build-type.gdbs` file and write:
+```bash
+clang:
+    compiler = "clang++" # Or anything you want to write!
+```
+Now If my build file was:
+```bash
+global:
+    compiler = "g++"
+
+src/*: only = "c"
+```
+Now if i run `gdbs .` the compiler will still be `g++` but if i run `gdbs . -bt clang` the compiler will become `clang++` because the build type will overwrite `g++`.
+
+We can use this to overwrite any global value. These are very usable to make debug builds and release builds too because we can just make a `build-type.gdbs` file and say.
+```bash
+debug:
+    compiler_parguments = [
+        "-Wall",
+        "-g"
+    ]
+    compiler = "g++"
+
+release:
+    compiler_parguments = "-O2"
+    compiler = "g++"
+```
+This was just a simple example , You can use this to overwrite any property you wish to do exactly what you want.
+
+ > Note: Build Type don't affects your original build.gdbs file, It makes a new gen-build.gdbs inside the .gdbs-cache or what ever cache directory your project uses. To prevent you from any weird build accidents.
+
+---
 
 ### Real Life Example Of A build.gdbs
 One of the best real life example of a `build.gdbs` can be 
